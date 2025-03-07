@@ -7,8 +7,17 @@ public class User{
     String number;
     String billing_address;
     String address;
+    public User(){}
     public User(int user_id, String user_name, String user_email, String user_password, String number, String address,String billing_address){
         this.user_id = user_id;
+        this.user_name = user_name;
+        this.user_email = user_email;
+        this.user_password = user_password;
+        this.number = number;
+        this.billing_address = billing_address;
+        this.address = address;
+    }
+    public User(String user_name, String user_email, String user_password, String number, String address,String billing_address){
         this.user_name = user_name;
         this.user_email = user_email;
         this.user_password = user_password;
@@ -49,5 +58,9 @@ public class User{
     }
     public void setBilling_address(String billing_address) {
         this.billing_address = billing_address;
+    }
+    @Override
+    public String toString(){
+        return "\nUser Id: "+user_id+"\nUser Name: "+user_name+"\nUser Email: "+user_email+"\nPhone Number: "+number+"\nAddress: "+address;
     }
 }

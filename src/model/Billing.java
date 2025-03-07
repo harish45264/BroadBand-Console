@@ -7,10 +7,18 @@ public class Billing {
     String due_date;
     String payment_date;
     String payment_status;
-
+    public Billing(){}
     public Billing(int user_id, int bill_id, int subscription_id, double amount, String due_date, String payment_date, String payment_status) {
         this.user_id = user_id;
         this.bill_id = bill_id;
+        this.subscription_id = subscription_id;
+        this.amount = amount;
+        this.due_date = due_date;
+        this.payment_date = payment_date;
+        this.payment_status = payment_status;
+    }
+    public Billing(int user_id, int subscription_id, double amount, String due_date, String payment_date, String payment_status) {
+        this.user_id = user_id;
         this.subscription_id = subscription_id;
         this.amount = amount;
         this.due_date = due_date;
@@ -58,5 +66,9 @@ public class Billing {
     }
     public String getPayment_status() {
         return payment_status;
+    }
+    @Override
+    public String toString(){
+        return "\nBill Id: "+bill_id+"\nUser Id: "+user_id+"\nSubscription Id: "+subscription_id+"\nBill Amount: "+amount+"\nDue Date: "+due_date+"\nLast Payment Date: "+payment_date+"\nCurrent Status: "+payment_status;
     }
 }

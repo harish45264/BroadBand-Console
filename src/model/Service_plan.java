@@ -6,6 +6,7 @@ public class Service_plan {
     Double price;
     String data_limit;
     int duration;
+    public Service_plan(){}
     public Service_plan(int plan_id, String plan_name, String speed, Double price, String data_limit, int duration){
         this.plan_id = plan_id;
         this.plan_name = plan_name;
@@ -43,5 +44,9 @@ public class Service_plan {
     }
     public void setSpeed(String speed) {
         this.speed = speed;
+    }
+    @Override
+    public String toString(){
+        return "\nPlan Id: "+plan_id+"\nPlan Name: "+plan_name+"\nNetwork Speed: "+speed+"\nData Limit(per month): "+data_limit+"\nPrice: "+price+"\nDuration(months): "+duration;
     }
 }

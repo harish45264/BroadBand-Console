@@ -1,4 +1,5 @@
 package model;
+
 public class Subscription {
     int subscription_id;
     int user_id;
@@ -6,8 +7,16 @@ public class Subscription {
     String start_date;
     String end_date;
     String status;
+    public Subscription(){}
     public Subscription(int subscription_id, int user_id, int plan_id, String start_date, String end_date, String status){
         this.subscription_id = subscription_id;
+        this.user_id = user_id;
+        this.plan_id = plan_id;
+        this.start_date = start_date;
+        this.end_date = end_date;
+        this.status = status;
+    }
+    public Subscription(int user_id, int plan_id, String start_date, String end_date, String status){
         this.user_id = user_id;
         this.plan_id = plan_id;
         this.start_date = start_date;
@@ -49,5 +58,9 @@ public class Subscription {
     }
     public void setStatus(String status) {
         this.status = status;
+    }
+    @Override
+    public String toString(){
+        return "\nPlan Id: "+plan_id+"\nValid From "+start_date+"\nValid Till: "+end_date+"\nCurrent Status: "+status;
     }
 }

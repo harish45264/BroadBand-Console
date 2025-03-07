@@ -1,24 +1,26 @@
 package controller;
+import dao.*;
 import java.time.LocalDate;
 import java.util.*;
 import model.*;
-import view.BandView;
+import userview.BandView;
 
 public class BandControl {
     protected  BandView view;
-    private ArrayList<User> users = new ArrayList<>();
-    private ArrayList<Service_plan> plans = new ArrayList<>();
-    private ArrayList<Billing> bills = new ArrayList<>();
-    private ArrayList<Feedback> feedbacks = new ArrayList<>();
-    private ArrayList<Subscription> subscriptions = new ArrayList<>();
-    private Scanner sc = new Scanner(System.in);
+    final private UserDAO userdb = new UserDAO();
+    final private PlanDAO plandb = new PlanDAO();
+    final private BillingDAO billdb = new BillingDAO();
+    final private SubscribeDAO sub = new SubscribeDAO();
+    final private FeedbackDAO feedback = new FeedbackDAO();
+    final private Scanner sc = new Scanner(System.in);
 
     public BandControl(BandView view){
         this.view = view;
     }
-    static int ucount = 0, scount = 0, bcount = 0;
+    static int currentUserId = -1;
     public void start(){
         while(true){
+            view.display("-------------------------");
             view.displayMenu();
             int ch = view.getInput();
             switch(ch){
@@ -26,132 +28,164 @@ public class BandControl {
                     register();
                     break;
                 case 2:
-                    viewplans();
+                    login();
                     break;
                 case 3:
-                    subscribe();
+                    viewplans();
                     break;
                 case 4:
-                    viewacc();
+                    viewfeedbacks();
                     break;
                 case 5:
-                    viewpayments();
-                    break;
-                case 6:
-                    addfeedback();
-                    break;
-                case 7:
-                    viewsubscription();
-                    break;
-                case 8:
-                    System.out.println("Exiting....!");
+                    view.display("Exiting....!");
                     return;
                 default:
-                    System.out.println("Invalid choice!");
+                    view.display("Enter Valid Option: ");
+                    break;
+            }
+        }
+    }
+    public void startWithUser(){
+        while(true){
+            view.display("-------------------------");
+            view.displayMenuWithUser();
+            int ch = view.getInput();
+            switch(ch){
+                case 1:
+                    viewplans();
+                    break;
+                case 2:
+                    subscribePlan();
+                    break;
+                case 3:
+                    viewacc();
+                    break;
+                case 4:
+                    viewBill();
+                    break;
+                case 5:
+                    addfeedback();
+                    break;
+                case 6:
+                    viewsubscription();
+                    break;
+                case 7:
+                    viewfeedbacks();
+                    break;
+                case 8:
+                    return;
+                case 9:
+                    view.display("Exiting....!");
+                    view.display("-------------------------");
+                    return;
+                default:
+                    view.display("Enter Valid Option: ");
                     break;
             }
         }
     }
         public void register(){
+            view.display("-------------------------");
+            view.display("Enter user name: ");
+            String name = sc.nextLine();
+            if(userdb.checkUserName(name, view))
+            {
+                view.display("Enter user email: ");
+                String email = sc.nextLine();
+                view.display("Enter user password: ");
+                String password = sc.nextLine();
+                view.display("Enter mobile number: ");
+                String number = sc.nextLine();
+                view.display("Enter address: ");
+                String address = sc.nextLine();
+                view.display("Billing address: ");
+                String billing = sc.nextLine();
+                User tmp = new User(name, email, password, number, address, billing);
+                userdb.addUser(tmp, view);
+                view.display("User registered successfully!");
+                currentUserId = userdb.getUserIdByName(name, view);
+                startWithUser();
+            }
+            else{
+                view.display("User name already exists!");
+                register();
+            }
+         }
+         private void login(){
+            view.display("-------------------------");
             view.display("Enter user name: ");
             String name = sc.nextLine();
             view.display("Enter user email: ");
             String email = sc.nextLine();
             view.display("Enter user password: ");
             String password = sc.nextLine();
-            view.display("Enter mobile number: ");
-            String number = sc.nextLine();
-            view.display("Enter address: ");
-            String address = sc.nextLine();
-            view.display("Billing address: ");
-            String billing = sc.nextLine();
-            users.add(new User(++ucount, name, email, password, number, address, billing));
-            view.display("User registered successfully!");
-         }
-         private void viewplans(){
-            if(plans.size() == 0){
-                view.display("No plans available!");
+            if(userdb.checkUserInDb(email, view)){
+                if(userdb.checkUser(email, password, view)){
+                    view.display("Login successful!");
+                    currentUserId = userdb.getUserIdByName(name, view);
+                    startWithUser();
+                }
+                else{
+                    view.display("Invalid email or password!");
+                    login();
+                }
             }
             else{
-                for(Service_plan i : plans){
-                    view.display("Plan ID: "+i.getPlan_id());
-                    view.display("Plan name: "+i.getPlan_name());
-                    view.display("Price: "+i.getPrice());
-                    view.display("Speed: "+i.getSpeed());
-                    view.display("Data Limit: "+i.getData_limit());
-                    view.display("Duration(Months): "+i.getDuration());
-                }
+                view.display("No Such User Found Login Again!");
+                register();
             }
          }
-         private void subscribe(){
-            view.display("Enter UserId: ");
-            int id = sc.nextInt();
-            view.display("Select PlanId: ");
-            int pid = sc.nextInt();
-            for(Service_plan i : plans){
-                if(i.getPlan_id() == pid){
-                    Subscription s = new Subscription(++scount, id, pid, LocalDate.now().toString(), LocalDate.now().plusMonths(i.getDuration()).toString(), "Active");
-                    Billing b = new Billing(id, ++bcount, scount, i.getPrice(),null, LocalDate.now().toString(), "Paid");
-                    bills.add(b);
-                    subscriptions.add(s);
-                    break;
-                }
+         private void viewplans(){
+            view.display("Available plans: ");
+            view.display("#######################");
+            ArrayList<Service_plan> plans = plandb.ViewPlans(view);
+            for(Service_plan p : plans){
+                view.display("--------------------------");
+                view.display(p.toString());
             }
+         }
+         private void subscribePlan(){
+            view.display("-------------------------");
+            plandb.ViewPlans(view);
+            view.display("Enter plan id: ");
+            int pid = sc.nextInt();
+            Service_plan plan = plandb.getPlanById(pid, view);
+            LocalDate today = LocalDate.now();
+            Subscription sb = new Subscription(currentUserId, pid, today.toString(), today.plusMonths(plan.getDuration()).toString(), "Active");
+            sub.subscribe(sb, view);
+            view.display("Plan subscribed successfully!");
+            Subscription subs = sub.getSubscriptionByUser(currentUserId, view);
+            Billing bill = new Billing(currentUserId, subs.getSubscription_id(),plan.getPrice(), today.plusMonths(1).toString(), today.toString(), "Paid");
+            billdb.addBill(bill, view);
          }
          private void viewacc(){
-            view.display("Enter UserId: ");
-            int uid = sc.nextInt();
-            for(User i : users){
-                if(i.getUserID() == uid){
-                    view.display("User ID: "+i.getUser_name());
-                    view.display("User Email: "+i.getEmail());
-                    view.display("User Phone Number: "+i.getNumber());
-                    view.display("User Address: "+i.getAddress());
-                }
-            }
+            view.display("-------------------------");
+            User user = userdb.getUserById(currentUserId, view);
+            view.display(user.toString());
          }
-         private void viewpayments(){
-            view.display("Enter User Id: ");
-            for(Billing i : bills){
-                if(i.getUser_id() == sc.nextInt()){
-                    view.display("User Bill Id: "+i.getBill_id());
-                    view.display("User Id: "+i.getUser_id());
-                    view.display("Subscription ID: "+i.getSubscription_id());
-                    view.display("Due Amount: "+i.getAmount());
-                    view.display("Due Date: "+i.getDue_date());
-                    view.display("Payment Date: "+i.getPayment_date());
-                    view.display("Current Status: "+i.getPayment_status());
-                }
-                break;
-            }
+         private void viewBill(){
+            Billing bill = billdb.getBillByUser(currentUserId, view);
+            view.display(bill.toString());
          }
          private void addfeedback(){
-            view.display("Enter User Id: ");
-            int uid = sc.nextInt();
-            view.display("Enter Feedback: ");
+            view.display("-------------------------");
+            view.display("Comments : ");
             String t = sc.nextLine();
-            view.display("Enter ratings: ");
+            view.display("Enter ratings(1 to 5) : ");
             int rate = sc.nextInt();
-            Feedback f = new Feedback(uid, rate, t);
-            feedbacks.add(f);
-         }
-         public void addplans(){
-            plans.add(new Service_plan(1, "Basic", "50 MB/s", 599.0, "100GB", 3));
-            plans.add(new Service_plan(2, "Standard", "100 MB/s", 899.0, "300GB", 6));
-            plans.add(new Service_plan(3, "Premium", "140 MB/s", 1399.0, "600GB", 4));
+            Feedback fb = new Feedback(currentUserId, rate, t);
+            feedback.addFeedBack(fb, view);
          }
          public void viewsubscription(){
-            view.display("Enter User Id: ");
-            int uid = sc.nextInt();
-            for(Subscription i : subscriptions){
-                if(i.getUser_id() == uid){
-                    view.display("Subscription ID: "+i.getSubscription_id());
-                    view.display("Plan ID: "+i.getPlan_id());
-                    view.display("Subscription Status: "+i.getStatus());
-                    view.display("Subscription Start Date: "+i.getStart_date());
-                    view.display("Subscription End Date: "+i.getEnd_date());
-                    break;
-                }
+            view.display("-------------------------");
+            Subscription sb = sub.getSubscriptionByUser(currentUserId, view);
+            view.display(sb.toString());
+         }
+         public void viewfeedbacks(){
+            ArrayList<Feedback> fbs = feedback.viewFeedBacks(view);
+            for(Feedback f : fbs){
+                view.display("-------------------------");
+                view.display(f.toString());
             }
          }
 }
